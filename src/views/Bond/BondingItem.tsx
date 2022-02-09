@@ -31,6 +31,7 @@ type BondingItemProps = {
 export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, allTokens, allPools, allTokenPrices, allStaking }) => {
 
   const [amount, setAmount] = useState('');
+  const [hash, setHash] = useState('');
 
   const depositToken: Token | any = useMemo(() => allTokens.length && bondingInfo ?
     getTokenByMint(bondingInfo.depositTokenMint.toString(), allTokens) : null
@@ -106,12 +107,11 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
   );
 
   const onBond = async () => {
-    console.log(model);
     // match stake model
-    // const stakingModel = allStaking.map((s: any) => s.staking)
-    //   .find((item: any) => {
-    //     return item.config.address.equals(bondingInfo.stakingPubkey)
-    //   })
+    const stakingModel = allStaking.map((s: any) => s.staking)
+      .find((item: any) => {
+        return item.config.address.equals(bondingInfo.stakingPubkey)
+      })
 
     if (!amount) return;
     const amount_U64 = DecimalUtil.toU64(
@@ -119,20 +119,15 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
       depositToken.decimals
     );
 
-    console.log(amount_U64);
-    console.log('1');
-    const [bondTx] = await Promise.all([
+    const [bondTx, stakeAllTx, rebaseTx] = await Promise.all([
       model.bond(amount_U64),
+      stakingModel.stakeAll(),
+      stakingModel.rebase(),
     ]);
 
-    // const [bondTx, stakeAllTx, rebaseTx] = await Promise.all([
-    //   model.bond(amount_U64),
-    //   stakingModel.stakeAll(),
-    //   stakingModel.rebase(),
-    // ]);
+    const hash = await (await bondTx.combine(stakeAllTx).combine(rebaseTx).confirm()).signature;
 
-    await bondTx.confirm();
-    // await bondTx.combine(stakeAllTx).combine(rebaseTx).confirm();
+    setHash(hash);
   }
   return (
     <div>
@@ -212,6 +207,12 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
             Bond
           </button>
         </div>
+        <div style={{ marginTop: "10px" }}>
+          {
+            hash ?
+              <span>hash : {hash} </span>
+              : ''
+          }</div>
       </div>
     </div>
 

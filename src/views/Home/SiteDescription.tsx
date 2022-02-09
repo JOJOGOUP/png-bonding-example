@@ -9,7 +9,6 @@ const SiteDescription = () => {
                         <h1 className="mb-5 text-5xl font-bold">
                             PNG Bond Example!
                         </h1>
-
                     </div>
                 </div>
             </div>

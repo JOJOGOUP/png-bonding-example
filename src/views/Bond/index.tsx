@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Provider } from '@project-serum/anchor';
+import { useSolana } from '@saberhq/use-solana';
 
 import {
   Bonding,
@@ -14,13 +13,7 @@ import { u64 } from '@solana/spl-token';
 
 const Bond: React.FC = () => {
 
-  const { wallet } = useWallet();
-  const { connection } = useConnection();
-
-  const provider = useMemo(
-    () => new Provider(connection, wallet as any, {
-      commitment: 'confirmed'
-    }), [connection, wallet]);
+  const { provider, providerMut } = useSolana();
 
   const [bondingList, setBondingList] = useState([]);
   const [stakingList, setStakingList] = useState([]);
@@ -28,15 +21,15 @@ const Bond: React.FC = () => {
   const [allPools, setPools] = useState([]);
   const [allTokenPrices, setAllTokenPrices] = useState([]);
 
-
   useEffect(() => {
     const API_HOST = 'https://api-staging.png.fi';
 
-    // Promise.all([
-    //   axios.get(`${API_HOST}/bonding`),
-    //   axios.get(`${API_HOST}/tokens`),
-    //   axios .get(`${API_HOST}/pools`)
-    // ]).then();
+    //   Promise.all([
+    //     axios.get(`${API_HOST}/bonding`),
+    //     axios.get(`${API_HOST}/tokens`),
+    //     axios .get(`${API_HOST}/pools`)
+    //   ]).then(([a,b,c]) => {
+    //   });
 
     axios.get(`${API_HOST}/bonding`)
       .then(res => res.data)
@@ -87,29 +80,28 @@ const Bond: React.FC = () => {
   const allBonding = useMemo(() =>
     bondingList
       .map((info: any) => {
-        console.log(info)
         return {
-          bonding: new Bonding(provider, { address: info.pubkey }, info),
+          bonding: new Bonding(providerMut || provider as any, { address: info.pubkey }, info),
           bondingInfo: Object.assign({}, info, {
             originMint: allTokens.find((item: any) => item.mint === info.payoutTokenMint.toBase58())?.['originMint']
           })
         }
       })
-    , [provider, bondingList]);
+    , [providerMut, provider, bondingList]);
 
   const allStaking = useMemo(() =>
     stakingList
       .map((info: any) => {
         return {
           staking: new Staking(
-            provider as any,
+            providerMut || provider as any,
             { address: info.pubkey, vestConfig: info.vestConfigInfo.pubkey },
             info
           ),
           stakingInfo: info,
         }
       })
-    , [provider, stakingList]);
+    , [providerMut, provider, stakingList]);
 
 
   const toBondingInfo = (item: any) => {
@@ -257,7 +249,7 @@ const Bond: React.FC = () => {
                 <BondingItem
                   key={`bonding-item-${idx}`}
                   model={item.bonding}
-                  bondingInfo={item.bondingInfo as any}
+                  bondingInfo={item.bondingInfo}
                   allTokens={allTokens}
                   allPools={allPools}
                   allTokenPrices={allTokenPrices}

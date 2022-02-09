@@ -1,7 +1,11 @@
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import React from 'react'
+import { useConnectedWallet, useSolana } from '@saberhq/use-solana';
+import { useWalletKit } from '@gokiprotocol/walletkit';
 
 const Header = () => {
+    const { disconnect } = useSolana();
+    const wallet = useConnectedWallet();
+    const { connect } = useWalletKit();
     return (
         <div className="navbar w-full mb-2 shadow-lg bg-neutral text-neutral-content rounded-box">
             <div className="flex-none">
@@ -13,7 +17,13 @@ const Header = () => {
                 <span className="text-lg font-bold">Caw Caw</span>
             </div>
             <div className="flex-none">
-                <WalletMultiButton className="btn btn-ghost" />
+                {
+                    wallet ? 
+                    <button className="btn btn-ghost" onClick={disconnect}>Disconnect</button>
+                    :
+                    <button className="btn btn-ghost" onClick={connect}>Connect Wallet</button>
+                }
+                
             </div>
         </div>
     )

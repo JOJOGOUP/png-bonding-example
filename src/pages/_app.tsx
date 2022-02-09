@@ -1,56 +1,40 @@
-import React, { useMemo } from "react";
+import React from "react";
 import type { AppProps } from "next/app";
-import dynamic from "next/dynamic";
-import {
-  ConnectionProvider,
-  useConnection,
-  useWallet,
-} from "@solana/wallet-adapter-react";
-import { clusterApiUrl } from "@solana/web3.js";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 import "tailwindcss/tailwind.css";
 import "../styles/globals.css";
 import "../styles/App.css";
-import { JupiterProvider } from "@jup-ag/react-hook";
-
-const SOLANA_NETWORK = WalletAdapterNetwork.Mainnet;
-// const SOLANA_NETWORK = WalletAdapterNetwork.Devnet;
-const network = SOLANA_NETWORK;
-
-const WalletProvider = dynamic(
-  () => import("../contexts/ClientWalletProvider"),
-  {
-    ssr: false,
-  }
-);
+import logoCircle from './logo-circle.png';
+import { WalletKitProvider } from '@gokiprotocol/walletkit';
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const endpoint = useMemo(() => "https://solana-api.projectserum.com", []);
+
+  const onWalletConnect = () => {
+  }
+
+  const onWalletDisconnect = () => {
+  }
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider>
-        <JupiterWrapper>
-          <Component {...pageProps} />
-        </JupiterWrapper>
-      </WalletProvider>
-    </ConnectionProvider>
+    <WalletKitProvider
+      onConnect={onWalletConnect}
+      onDisconnect={onWalletDisconnect}
+      commitment={'processed'}
+      defaultNetwork={'mainnet-beta'}
+      networkConfigs={{
+        ['mainnet-beta']: {
+          name: ' mainnet-beta',
+          endpoint: 'https://solana-api.projectserum.com'
+        }
+      }}
+      app={{
+        name: 'Penguin'
+      }}
+    >
+      <Component {...pageProps} />
+    </WalletKitProvider>
+
   );
 }
-
-const JupiterWrapper: React.FC = ({ children }) => {
-  const { connection } = useConnection();
-  const wallet = useWallet();
-  return (
-    <JupiterProvider
-      cluster="mainnet-beta"
-      connection={connection}
-      userPublicKey={wallet.publicKey || undefined}
-    >
-      {children}
-    </JupiterProvider>
-  );
-};
 
 export default MyApp;
