@@ -22,14 +22,7 @@ const Bond: React.FC = () => {
   const [allTokenPrices, setAllTokenPrices] = useState([]);
 
   useEffect(() => {
-    const API_HOST = 'https://api-staging.png.fi';
-
-    //   Promise.all([
-    //     axios.get(`${API_HOST}/bonding`),
-    //     axios.get(`${API_HOST}/tokens`),
-    //     axios .get(`${API_HOST}/pools`)
-    //   ]).then(([a,b,c]) => {
-    //   });
+    const API_HOST = 'https://api.png.fi';
 
     axios.get(`${API_HOST}/bonding`)
       .then(res => res.data)
