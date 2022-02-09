@@ -131,8 +131,8 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
   }
   return (
     <div>
-      <div style={{ width: "100%" }}>
-        <p style={{ display: "flex" }}>
+      <div style={{ width: "500px", textAlign: "center", wordBreak: "break-all" }}>
+        <p style={{ display: "flex", justifyContent: "center" }}>
           {
             assetTokens?.map((token: { logoURI: any }, idx: any) => (
               <span key={`asset-token-${idx}`}>
@@ -140,8 +140,9 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
               </span>
             ))
           }
+          {assetTokens?.length ? assetTokens.map((token: { symbol: any; }) => token.symbol).join('/') : 'loading'}
         </p>
-        {assetTokens?.length ? assetTokens.map((token: { symbol: any; }) => token.symbol).join('/') : 'loading'}
+
 
         <div style={{ marginTop: "10px" }} >
           <p >Payout Asset：<img src={payoutToken?.logoURI} width={30} style={{ display: 'inline' }} /></p>
@@ -149,50 +150,49 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
           <p style={{ marginTop: "10px" }}>Market Price：${DecimalUtil.beautify(new Decimal(payoutTokenPrice))} </p>
         </div>
 
-        <div style={{ display: "flex", marginTop: "10px" }}>
-          <p >TBV：</p>
-          {
-            bondingInfo && depositToken ?
-              (payoutTokenPrice > 0 ? '$' : '') + DecimalUtil.beautify(
-                payoutTokenPrice > 0 ?
-                  DecimalUtil.fromU64(
-                    bondingInfo.bondingSupply.sub(bondingInfo.initSupply),
-                    payoutToken?.decimals
-                  ).mul(payoutTokenPrice) :
-                  DecimalUtil.fromU64(
-                    bondingInfo.bondingSupply.sub(bondingInfo.initSupply),
-                    payoutToken?.decimals
-                  )
-              ) : 'loading'
-          }
+        <div style={{ marginTop: "10px" }}>
+          <p >TBV：
+            {
+              bondingInfo && depositToken ?
+                (payoutTokenPrice > 0 ? '$' : '') + DecimalUtil.beautify(
+                  payoutTokenPrice > 0 ?
+                    DecimalUtil.fromU64(
+                      bondingInfo.bondingSupply.sub(bondingInfo.initSupply),
+                      payoutToken?.decimals
+                    ).mul(payoutTokenPrice) :
+                    DecimalUtil.fromU64(
+                      bondingInfo.bondingSupply.sub(bondingInfo.initSupply),
+                      payoutToken?.decimals
+                    )
+                ) : 'loading'
+            }
+          </p>
 
         </div>
-        <div style={{ display: "flex", marginTop: "10px" }}>
-          <p >ROI：</p>
-          <div>
+        <div style={{ marginTop: "10px" }}>
+          <p >ROI：
             {
               roi === null ? '-' :
                 DecimalUtil.beautify(DecimalUtil.fromNumber(roi), 2) + '%'
             }
-          </div>
+          </p>
         </div>
 
-        <div style={{ display: "flex", marginTop: "10px" }}>
-          <p >Vesting Term：</p>
-          <div>
-            {vestTerm} days
-          </div>
+        <div style={{ marginTop: "10px" }}>
+          <p >Vesting Term： {vestTerm} days
+          </p>
         </div>
 
-        <div style={{ display: "flex", marginTop: "10px" }}>
-          <p>Max payout：</p>
-          {
-            bondingInfo ?
-              DecimalUtil.beautify(DecimalUtil.fromU64(bondingInfo.bondingSupply, 6)
-                .mul(DecimalUtil.fromU64(bondingInfo.maxPayoutFactor))
-                .div(DecimalUtil.fromNumber(100000))
-              ) : ''
-          }
+        <div style={{ marginTop: "10px" }}>
+          <p>Max payout：
+            {
+              bondingInfo ?
+                DecimalUtil.beautify(DecimalUtil.fromU64(bondingInfo.bondingSupply, 6)
+                  .mul(DecimalUtil.fromU64(bondingInfo.maxPayoutFactor))
+                  .div(DecimalUtil.fromNumber(100000))
+                ) : ''
+            }
+          </p>
         </div>
 
         <div>
