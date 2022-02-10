@@ -325,44 +325,6 @@
     "@json-rpc-tools/types" "^1.7.6"
     "@pedrouid/environment" "^1.0.1"
 
-"@jup-ag/core@1.0.0-beta.2":
-  version "1.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@jup-ag/core/-/core-1.0.0-beta.2.tgz#81e7d7fbebb623611483aba52694c39bad4d0e34"
-  integrity sha512-4gzUFWTk2ptEGJRI1YMyV8+x1atb9FZ4cEwqWsiJTl3KJx8zy1FS+QqLoftBoskVNPT2Uvnev6H/kmBxIhfU9g==
-  dependencies:
-    "@jup-ag/math" "1.0.0-beta.2"
-    "@mercurial-finance/stable-swap-n-pool" "0.2.0"
-    "@project-serum/anchor" "0.17.1-beta.1"
-    "@project-serum/serum" "~0.13.60"
-    "@saberhq/stableswap-sdk" "~1.6.2"
-    "@saberhq/token-utils" "~1.6.2"
-    "@solana/buffer-layout" "~3.0.0"
-    "@solana/spl-token" "^0.1.5"
-    "@solana/web3.js" "~1.30.2"
-    bn.js "~5.2.0"
-    cross-fetch "3.1.4"
-    decimal.js "~10.3.1"
-    jsbi "~4.1.0"
-    promise-retry "~2.0.1"
-
-"@jup-ag/math@1.0.0-beta.2":
-  version "1.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@jup-ag/math/-/math-1.0.0-beta.2.tgz#ddc2dd9a6ebf012c3b2047a5069ce951336ee152"
-  integrity sha512-2N3iL6azQ1+yL4qlxjuWq9VZBryRULGyc/dtNB0JFL9WY7f9ZlMNvaHfhGZ2MK7ixYIPo8iD1mJha9eqFnwu7A==
-  dependencies:
-    "@solana/spl-token-registry" "^0.2.229"
-    "@solana/web3.js" "~1.30.2"
-    builder-pattern "~1.3.0"
-    decimal.js "~10.3.1"
-    jsbi "~4.1.0"
-
-"@jup-ag/react-hook@1.0.0-beta.2":
-  version "1.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@jup-ag/react-hook/-/react-hook-1.0.0-beta.2.tgz#4bf314f66f40abfeaba63212960de6b0c054b01d"
-  integrity sha512-hxgj/ewsyE5xRMHRI8/4SOjDq7pw7JC61rqcA1ZhbYlHvuEKgUGcuTr9fICy1VgB1++rWkU+cNVziYFqz5VevA==
-  dependencies:
-    "@jup-ag/core" "1.0.0-beta.2"
-
 "@ledgerhq/devices@^6.11.2", "@ledgerhq/devices@^6.20.0":
   version "6.20.0"
   resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-6.20.0.tgz#4280aaa5dc16f821ecab9ee8ae882299411ba5b7"
