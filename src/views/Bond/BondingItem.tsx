@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 
 import {
   BondingInfo,
-  computeLPPrice,
   DecimalUtil,
   getTokenByMint,
   getTokenBySymbol,
@@ -22,12 +21,17 @@ type BondingItemProps = {
     originMint: string;
   };
   allTokens: any,
-  allPools: any,
   allTokenPrices: any,
   allStaking: any,
 }
 
-export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, allTokens, allPools, allTokenPrices, allStaking }) => {
+export const BondingItem: React.FC<BondingItemProps> = ({
+  model,
+  bondingInfo,
+  allTokens,
+  allTokenPrices,
+  allStaking
+}) => {
 
   const [amount, setAmount] = useState('');
   const [hash, setHash] = useState('');
@@ -40,7 +44,10 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
     getTokenByMint(bondingInfo.originMint, allTokens) : null
     , [allTokens, bondingInfo]);
 
-  const vestTerm: number = useMemo(() => bondingInfo ? bondingInfo.vestConfigInfo.claimAllDuration / (3600 * 24) : 0, [bondingInfo])
+  const vestTerm: number = useMemo(() =>
+    bondingInfo ?
+      bondingInfo.vestConfigInfo.claimAllDuration / (3600 * 24) : 0
+    , [bondingInfo])
 
   const assetTokens: Token[] | any = useMemo(() => {
     if (!depositToken) {
@@ -81,13 +88,8 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
       return 0;
     }
 
-    if (!depositToken?.isLP) {
-      return allTokenPrices[depositToken.symbol] || 0;
-    } else {
-      const poolInfo = allPools[depositToken.symbol];
-      return poolInfo ? computeLPPrice(poolInfo, allTokenPrices) : 0;
-    }
-  }, [allTokenPrices, allPools, depositToken]);
+    return allTokenPrices[depositToken.symbol] || 0;
+  }, [allTokenPrices, depositToken]);
 
   const bondingPrice = useMemo(() => {
     if (!payoutInfo || !payoutToken) {
@@ -107,10 +109,9 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
 
   const onBond = async () => {
     // match stake model
-    const stakingModel = allStaking.map((s: any) => s.staking)
-      .find((item: any) => {
-        return item.config.address.equals(bondingInfo.stakingPubkey)
-      })
+    const stakingModel = allStaking.find((item: any) => {
+      return item.config.address.equals(bondingInfo.stakingPubkey)
+    })
 
     if (!amount) return;
     const amount_U64 = DecimalUtil.toU64(
@@ -128,6 +129,7 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
 
     setHash(hash);
   }
+
   return (
     <div>
       <div style={{ width: "500px", textAlign: "center", wordBreak: "break-all" }}>
@@ -141,7 +143,6 @@ export const BondingItem: React.FC<BondingItemProps> = ({ model, bondingInfo, al
           }
           {assetTokens?.length ? assetTokens.map((token: { symbol: any; }) => token.symbol).join('/') : 'loading'}
         </p>
-
 
         <div style={{ marginTop: "10px" }} >
           <p >Payout Asset：<img src={payoutToken?.logoURI} width={30} style={{ display: 'inline' }} /></p>

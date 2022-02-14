@@ -1,258 +1,110 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { PublicKey } from "@solana/web3.js";
-import { useSolana } from '@saberhq/use-solana';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import {
-  Bonding,
-  Staking,
   DecimalUtil,
 } from '@pngfi/sdk';
-import { BondingItem } from './BondingItem';
-import axios from 'axios';
-import { u64 } from '@solana/spl-token';
+import Decimal from 'decimal.js';
+// import { useBonding } from '@pngfi/sdk';
+import { useBonding } from '../../contexts/BondingProvider';
 
 const Bond: React.FC = () => {
+  const { bondingInfo } = useBonding();
+  console.log(bondingInfo);
 
-  const { provider, providerMut } = useSolana();
+  const [hash, setHash] = useState('');
+  const [amount, setAmount] = useState('');
 
-  const [bondingList, setBondingList] = useState([]);
-  const [stakingList, setStakingList] = useState([]);
-  const [allTokens, setAllTokens] = useState([]);
-  const [allPools, setPools] = useState([]);
-  const [allTokenPrices, setAllTokenPrices] = useState([]);
+  const onBond = async (bondingData: any) => {
+    // match stake model
+    const { bondingModel, stakingModel, depositAsset } = bondingData;
 
-  useEffect(() => {
-    const API_HOST = 'https://api.png.fi';
+    if (!amount) return;
 
-    axios.get(`${API_HOST}/bonding`)
-      .then(res => res.data)
-      .then(data => {
-        const tmpData = data.map((item: any) => toBondingInfo(item));
-        setBondingList(tmpData);
-      });
+    const amount_U64 = DecimalUtil.toU64(
+      new Decimal(amount),
+      depositAsset.decimal
+    );
 
-    axios.get(`${API_HOST}/staking`)
-      .then(res => res.data)
-      .then(data => {
-        const tmpData = data.map((item: any) => toStakingInfo(item));
-        setStakingList(tmpData);
-      });
+    const [bondTx, stakeAllTx, rebaseTx] = await Promise.all([
+      bondingModel.bond(amount_U64),
+      stakingModel.stakeAll(),
+      stakingModel.rebase(),
+    ]);
 
-    axios
-      .get(`${API_HOST}/tokens`)
-      .then(res => res.data)
-      .then(tokens => setAllTokens(tokens));
+    // const hash = await (await bondTx.combine(stakeAllTx).combine(rebaseTx).confirm()).signature;
+    const hash = await (await bondTx.combine(stakeAllTx).confirm()).signature;
 
-    axios
-      .get(`${API_HOST}/pools`)
-      .then(res => res.data)
-      .then(data => {
-        const poolsInfo = data.map((item: any) => toPoolInfo(item));
-        const pools = poolsInfo.reduce((record: any, item: any) => {
-          const pair = `${item?.tokenA.symbol}_${item?.tokenB.symbol}`;
-          record[pair] = item;
-          return record;
-        }, {});
-        setPools(pools);
-
-        const pairs = Object.keys(pools);
-        if (!pairs.length) {
-          return;
-        }
-        const idsArr = [...new Set(
-          pairs.map(pair => pair.split('_')).flat(Infinity)
-        )];
-
-        axios
-          .get(`${API_HOST}/prices/${idsArr.join(',')}`)
-          .then(res => res.data)
-          .then(prices => setAllTokenPrices(prices));
-      });
-  }, [])
-
-  const allBonding = useMemo(() =>
-    bondingList
-      .map((info: any) => {
-        return {
-          bonding: new Bonding(providerMut || provider as any, { address: info.pubkey }, info),
-          bondingInfo: Object.assign({}, info, {
-            originMint: allTokens.find((item: any) => item.mint === info.payoutTokenMint.toBase58())?.['originMint']
-          })
-        }
-      })
-    , [providerMut, provider, bondingList]);
-
-  const allStaking = useMemo(() =>
-    stakingList
-      .map((info: any) => {
-        return {
-          staking: new Staking(
-            providerMut || provider as any,
-            { address: info.pubkey, vestConfig: info.vestConfigInfo.pubkey },
-            info
-          ),
-          stakingInfo: info,
-        }
-      })
-    , [providerMut, provider, stakingList]);
-
-
-  const toBondingInfo = (item: any) => {
-    if (!item) return;
-
-    const {
-      pubkey,
-      stakingAddress,
-      payoutHolder,
-      bondingSupply,
-      controlVariable,
-      decayFactor,
-      depositHolder,
-      depositHolderAmount,
-      depositTokenMint,
-      initSupply,
-      lastDecay,
-      maxDebt,
-      maxPayoutFactor,
-      minPrice,
-      payoutTokenMint,
-      totalDebt,
-      vestConfigInfo
-    } = item;
-
-    return {
-      pubkey: new PublicKey(pubkey),
-      stakingPubkey: new PublicKey(stakingAddress),
-      payoutHolder: new PublicKey(payoutHolder),
-      payoutTokenMint: new PublicKey(payoutTokenMint),
-      depositHolder: new PublicKey(depositHolder),
-      depositTokenMint: new PublicKey(depositTokenMint),
-      depositHolderAmount: DecimalUtil.toU64(DecimalUtil.fromString(depositHolderAmount)),
-      initSupply: DecimalUtil.toU64(DecimalUtil.fromString(initSupply)),
-      bondingSupply: DecimalUtil.toU64(DecimalUtil.fromString(bondingSupply)),
-      maxPayoutFactor: DecimalUtil.toU64(DecimalUtil.fromString(maxPayoutFactor)),
-      maxDebt: DecimalUtil.toU64(DecimalUtil.fromString(maxDebt)),
-      minPrice: DecimalUtil.toU64(DecimalUtil.fromString(minPrice)),
-      totalDebt: DecimalUtil.toU64(DecimalUtil.fromString(totalDebt)),
-      controlVariable,
-      decayFactor,
-      lastDecay,
-      vestConfigInfo
-    }
-  }
-
-  const toStakingInfo = (item: any) => {
-    if (!item) return;
-
-    const {
-      pubkey,
-      tokenMint,
-      sTokenMint,
-      tokenHolder,
-      tokenHolderAmount,
-      rebaseEpochDuration,
-      rebaseLastTime,
-      rebaseRateNumerator,
-      rebaseRateDenominator,
-      rebaseRewardsAmount,
-      rewardsHolder,
-      rebaseSupply,
-      apy,
-      rewardsPerDay,
-      sTokenMintSupply,
-      vestConfigInfo
-    } = item;
-
-    return {
-      pubkey: new PublicKey(pubkey),
-      tokenMint: new PublicKey(tokenMint),
-      sTokenMint: new PublicKey(sTokenMint),
-      tokenHolder: new PublicKey(tokenHolder),
-      payoutTokenMint: new PublicKey(tokenHolder),
-      tokenHolderAmount: DecimalUtil.toU64(DecimalUtil.fromString(tokenHolderAmount)),
-      rebaseEpochDuration,
-      rebaseLastTime,
-      apy,
-      rewardsPerDay,
-      rebaseRateNumerator,
-      rebaseRateDenominator,
-      rewardsHolder: new PublicKey(rewardsHolder),
-      rebaseSupply: DecimalUtil.toU64(DecimalUtil.fromString(rebaseSupply)),
-      sTokenMintSupply: DecimalUtil.toU64(DecimalUtil.fromString(sTokenMintSupply)),
-      rebaseRewardsAmount: DecimalUtil.toU64(DecimalUtil.fromString(rebaseRewardsAmount)),
-      vestConfigInfo: {
-        pubkey: new PublicKey(vestConfigInfo.pubkey),
-        vestMint: new PublicKey(vestConfigInfo.vestMint),
-        claimAllDuration: vestConfigInfo.claimAllDuration,
-        halfLifeDuration: vestConfigInfo.halfLifeDuration,
-        claimableHolder: new PublicKey(vestConfigInfo.claimableHolder),
-        claimableMint: new PublicKey(vestConfigInfo.claimableMint),
-      }
-    }
-  }
-
-  const toPoolInfo = (item: any) => {
-
-    const {
-      pubkey,
-      authority,
-      curveType,
-      feeAccount,
-      feeStructure,
-      lpSupply,
-      nonce,
-      poolTokenDecimals,
-      poolTokenMint,
-      tokenA,
-      tokenB
-    } = item;
-
-    return {
-      address: new PublicKey(pubkey),
-      authority: new PublicKey(authority),
-      curveType,
-      feeAccount: new PublicKey(feeAccount),
-      feeStructure,
-      lpSupply: DecimalUtil.fromString(lpSupply),
-      nonce,
-      poolTokenDecimals,
-      poolTokenMint: new PublicKey(poolTokenMint),
-      tokenA: {
-        ...tokenA,
-        addr: new PublicKey(tokenA.addr),
-        amount: new u64(tokenA.amount)
-      },
-      tokenB: {
-        ...tokenB,
-        addr: new PublicKey(tokenB.addr),
-        amount: new u64(tokenB.amount)
-      }
-
-    }
+    setHash(hash);
   }
 
   return (
     <div className="max-w-full md:max-w-lg">
+      {
+        bondingInfo && bondingInfo.length ?
+          bondingInfo.map((item: any, idx: any) => {
+            return (
+              <div key={`bonding-${idx}`} style={{ width: "500px", textAlign: "center", wordBreak: "break-all" }}>
+                <p style={{ display: "flex", justifyContent: "center" }}>
+                  {
+                    item.depositAsset.icon.map((icon: any, idx: any) => (
+                      <span key={`depositAsset-${idx}`}>
+                        <img src={icon} width={30} />
+                      </span>
+                    ))
+                  }
+                  {item.depositAsset.symbol}
+                </p>
 
-      <div>
-        <div>
-          {
-            allBonding?.length ?
-              allBonding?.map((item, idx) => (
-                <BondingItem
-                  key={`bonding-item-${idx}`}
-                  model={item.bonding}
-                  bondingInfo={item.bondingInfo}
-                  allTokens={allTokens}
-                  allPools={allPools}
-                  allTokenPrices={allTokenPrices}
-                  allStaking={allStaking}
-                />
-              )) :
-              <div> no bonding </div>
-          }
-        </div>
-      </div>
+                <div style={{ marginTop: "10px" }} >
+                  <p >Payout Asset：<img src={item.payoutAsset.icon} width={30} style={{ display: 'inline' }} /></p>
+                  <p style={{ marginTop: "10px" }}>Bond Price：${DecimalUtil.beautify(new Decimal(item.bondingPrice))} </p>
+                  <p style={{ marginTop: "10px" }}>Market Price：${DecimalUtil.beautify(new Decimal(item.marketPrice))} </p>
+                </div>
+
+                <div style={{ marginTop: "10px" }}>
+                  <p >TBV：
+                    ${DecimalUtil.beautify(new Decimal(item.tbv))}
+                  </p>
+                </div>
+
+                <div style={{ marginTop: "10px" }}>
+                  <p >ROI：
+                    {
+                      item.roi === null ? '-' :
+                        DecimalUtil.beautify(DecimalUtil.fromNumber(item.roi), 2) + '%'
+                    }
+                  </p>
+                </div>
+
+                <div style={{ marginTop: "10px" }}>
+                  <p >Vesting Term： {item.vestTerm} days
+                  </p>
+                </div>
+
+                <div>
+                  <input type="text" style={{ padding: "5px", marginRight: "5px", color: "#000" }}
+                    onChange={val => setAmount(val.target.value)} placeholder='input amount' />
+                  <button
+                    style={{ border: "1px solid", padding: "5px", borderRadius: "8px", marginTop: "10px" }}
+                    type="button"
+                    disabled={false}
+                    onClick={() => onBond(item)}
+                  >
+                    Bond
+                  </button>
+                </div>
+                <div style={{ marginTop: "10px" }}>
+                  {
+                    hash ?
+                      <span>hash : {hash} </span>
+                      : ''
+                  }</div>
+
+              </div>
+            )
+          })
+          : 'no bonding'
+      }
 
     </div >
   );

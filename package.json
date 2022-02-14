@@ -11,8 +11,9 @@
   "dependencies": {
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
+    "@gokiprotocol/walletkit": "^1.4.4",
     "@pngfi/sdk": "^0.9.3",
-    "@saberhq/use-solana": "^1.12.40",
+    "@saberhq/use-solana": "^1.7.3",
     "@solana/spl-token": "^0.1.8",
     "@solana/spl-token-registry": "^0.2.298",
     "@solana/wallet-adapter-base": "^0.7.0",
@@ -30,8 +31,7 @@
     "next-compose-plugins": "^2.2.1",
     "next-transpile-modules": "^9.0.0",
     "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "@gokiprotocol/walletkit": "^1.4.4"
+    "react-dom": "17.0.2"
   },
   "devDependencies": {
     "@types/node": "16.11.7",

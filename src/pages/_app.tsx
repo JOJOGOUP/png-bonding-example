@@ -1,18 +1,17 @@
 import React from "react";
 import type { AppProps } from "next/app";
-
 import "tailwindcss/tailwind.css";
 import "../styles/globals.css";
 import "../styles/App.css";
-import logoCircle from './logo-circle.png';
 import { WalletKitProvider } from '@gokiprotocol/walletkit';
-
 function MyApp({ Component, pageProps }: AppProps) {
 
   const onWalletConnect = () => {
+    console.log('onWalletConnect');
   }
 
   const onWalletDisconnect = () => {
+    console.log('onWalletDisconnect');
   }
 
   return (
