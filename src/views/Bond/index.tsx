@@ -5,17 +5,26 @@ import {
 } from '@pngfi/sdk';
 import Decimal from 'decimal.js';
 import { useBonding } from '@pngfi/sdk';
+import { useSolana } from '@saberhq/use-solana';
 // import { useBonding } from '../../contexts/BondingProvider';
 
 const Bond: React.FC = () => {
   const { bondingInfo } = useBonding();
+  const { providerMut } = useSolana();
   console.log(bondingInfo);
 
   const [hash, setHash] = useState('');
+  const [tips, setToast] = useState('');
   const [amount, setAmount] = useState('');
+
+  const setTips = () => {
+    setToast('please connect wallet')
+    setTimeout(() => setToast(''), 3000);
+  };
 
   const onBond = async (bondingData: any) => {
     // match stake model
+    if (!!!providerMut) return setTips();
     const { bondingModel, stakingModel, depositAsset } = bondingData;
 
     if (!amount) return;
@@ -31,8 +40,7 @@ const Bond: React.FC = () => {
       stakingModel.rebase(),
     ]);
 
-    // const hash = await (await bondTx.combine(stakeAllTx).combine(rebaseTx).confirm()).signature;
-    const hash = await (await bondTx.combine(stakeAllTx).confirm()).signature;
+    const hash = await (await bondTx.combine(stakeAllTx).combine(rebaseTx).confirm()).signature;
 
     setHash(hash);
   }
@@ -99,6 +107,9 @@ const Bond: React.FC = () => {
                       <span>hash : {hash} </span>
                       : ''
                   }</div>
+                <div>
+                  <span>{tips}</span>
+                </div>
 
               </div>
             )

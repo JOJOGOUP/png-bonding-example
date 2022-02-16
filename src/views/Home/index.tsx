@@ -9,10 +9,10 @@ import styles from "./index.module.css";
 import { useSolana } from '@saberhq/use-solana';
 
 const Home: FC = () => {
-  const { providerMut } = useSolana();
+  const { provider, providerMut } = useSolana();
 
   return (
-    <BondingProvider cluster="mainnet-bate" provider={providerMut as any} >
+    <BondingProvider cluster="mainnet-bate" provider={providerMut || provider as any} >
       <div className="container mx-auto max-w-6xl p-8 2xl:px-0">
         <div className={styles.container}>
           <Header />
