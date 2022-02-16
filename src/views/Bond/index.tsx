@@ -4,8 +4,8 @@ import {
   DecimalUtil,
 } from '@pngfi/sdk';
 import Decimal from 'decimal.js';
-// import { useBonding } from '@pngfi/sdk';
-import { useBonding } from '../../contexts/BondingProvider';
+import { useBonding } from '@pngfi/sdk';
+// import { useBonding } from '../../contexts/BondingProvider';
 
 const Bond: React.FC = () => {
   const { bondingInfo } = useBonding();
